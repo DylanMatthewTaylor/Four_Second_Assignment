@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <title>Four Second Challenge</title>
+</head>
+<body>
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 mx-auto">
+      <div class="card text-center">
+        <div class="card-header">
+          4 Second Challenge
+        </div>
+        <div class="card-body">
+          <p class="card-text">Click the button to begin and click again to stop<br>If the elapsed time is 4 seconds the green indication will display <br> If the time is within +/- .2 seconds the blue indication will display <br>If the elapsed time is within +/- .5 seconds the yellow indication will display<br>Anything greater is red and view your results below</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-grid gap-2 col-4 mx-auto" style="margin-top: 100px;">
+  <button class="btn btn-outline-primary btn-lg" id="stopwatchBtn" type="button" onclick="startStop()">
+    Start
+  </button>
+
+</div>
+
+<button class="btn btn-primary" onclick="toggleTable()">View Attempts</button>
+<div id="table-container" style="display: none;">
+  <table class="table">
+    <thead>
+    <tr>
+      <th>Attempt #</th>
+      <th>Start Time</th>
+      <th>Stop Time</th>
+      <th>Elapsed Time</th>
+    </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+    <tfoot>
+    <tr>
+      <th colspan="3">Summary</th>
+      <td>
+        <div>Minimum Time: <span id="min-time"></span> Seconds</div>
+        <div>Maximum Time: <span id="max-time"></span> Seconds</div>
+        <div>Average Time: <span id="avg-time"></span> Seconds</div>
+      </td>
+    </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script>
+  let cachedClick;
+  let elapsedTime = null;
+  let timerRunning = false;
+  let attempts = [];
+  let totalAttempts = 0;
+  let minTime = null;
+  let maxTime = null;
+  let avgTime = null;
+  let startTime = null;
+  let stopTime = null;
+
+  function startStop() {
+    let date = new Date();
+    let clickTime = date.getTime();
+    if (timerRunning) {
+      let delta = clickTime - cachedClick;
+      console.log("Your time is " + delta + " milliseconds");
+      cachedClick = clickTime;
+      elapsedTime = delta;
+    } else {
+      cachedClick = clickTime;
+      startTime = date;
+    }
+
+
+    let btn = document.getElementById("stopwatchBtn");
+    if (btn.innerHTML === "Start") {
+      btn.innerHTML = "Stop";
+      btn.style.backgroundColor = "";
+      timerRunning = true;
+    }
+    else {
+      btn.innerHTML = "Start";
+      timerRunning = false;
+      if (elapsedTime !== null) {
+        if (elapsedTime >= 3999 && elapsedTime <= 4001) {
+          btn.style.backgroundColor = "green";
+        } else if (elapsedTime >= 3800 && elapsedTime <= 4200) {
+          btn.style.backgroundColor = "blue";
+        } else if (elapsedTime >= 3500 && elapsedTime <= 4500) {
+          btn.style.backgroundColor = "yellow";
+        } else {
+          btn.style.backgroundColor = "red";
+        }
+
+        stopTime = date;
+
+        //Array to store the attempt information
+        let attempt = {
+          attemptNumber: attempts.length + 1,
+          startTime: startTime,
+          stopTime: stopTime,
+          elapsedTime: elapsedTime
+        };
+        attempts.push(attempt);
+
+        //Updating the result summary
+        totalAttempts++;
+        if (minTime === null || elapsedTime < minTime) {
+          minTime = elapsedTime;
+        }
+        if (maxTime === null || elapsedTime < maxTime) {
+          maxTime = elapsedTime;
+        }
+        if (avgTime === null) {
+          avgTime = elapsedTime;
+        }
+        else {
+          avgTime = ((avgTime * (totalAttempts - 1)) + elapsedTime) / totalAttempts;
+        }
+        updateTable();
+      }
+    }
+  }
+
+  function updateTable() {
+    let tableHtml = "";
+    let tableBody = document.getElementById("table-body");
+    for (let i = 0; i < attempts.length; i++) {
+      let attempt = attempts[i];
+      let elapsedTimeInSeconds = (attempt.elapsedTime / 1000).toFixed(2);
+      let row = "<tr><td>" + attempt.attemptNumber + "</td><td>" + attempt.startTime + "</td><td>" + attempt.stopTime + "</td><td>" + elapsedTimeInSeconds + "</td></tr>";
+      tableHtml += row;
+    }
+    tableBody.innerHTML = tableHtml
+
+    //Updating milliseconds to seconds by two decimal places
+    let minTimeElement = document.getElementById("min-time");
+    let maxTimeElement = document.getElementById("max-time");
+    let avgTimeElement = document.getElementById("avg-time");
+    minTimeElement.innerHTML = (minTime / 1000).toFixed(2);
+    maxTimeElement.innerHTML = (maxTime / 1000).toFixed(2);
+    avgTimeElement.innerHTML = (avgTime / 1000).toFixed(2);
+  }
+
+    //Toggle function to view results
+    function toggleTable() {
+      let tableContainer = document.getElementById("table-container");
+      if (tableContainer.style.display === "none") {
+        tableContainer.style.display = "block";
+        updateTable();
+      }
+      else{
+        tableContainer.style.display = "none";
+      }
+    }
+
+
+</script>
+</body>
+</html>
